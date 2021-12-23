@@ -71,6 +71,7 @@ class StudentSerializer(serializers.HyperlinkedModelSerializer):
         # print(data)
         return data
 
+
 class StudentListSerializer(serializers.ListSerializer):
     def create(self, validated_data):
         students = [Student(**item) for item in validated_data]
@@ -119,12 +120,11 @@ class MarkSerializer(serializers.ModelSerializer):
 
 class SubjectSerializer(serializers.HyperlinkedModelSerializer):
     # modeldagi name nomini subject nomiga o'zgartirish mumkin
-    subject = serializers.CharField(source='name')
+    # subject = serializers.CharField(source='name')
 
     class Meta:
         model = Subject
-        # fields = '__all__'
-        fields = ('url', 'subject',)
+        fields = ('id', 'name',)
 
 
 class HighScoreSerializer(serializers.BaseSerializer):
@@ -161,3 +161,42 @@ class HighScoreSerializer(serializers.BaseSerializer):
 
     def create(self, validated_data):
         return HighScore.objects.create(**validated_data)
+
+
+class StudentSmallSerializer(serializers.Serializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    avg_mark = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+
+class TeacherSerializer(serializers.ModelSerializer):
+    subject = serializers.SlugRelatedField(queryset=Subject.objects.all(), slug_field='name')
+
+    class Meta:
+        model = Teacher
+        fields = ('first_name', 'last_name', 'subject')
+
+
+class UserLevelSerializer(serializers.Serializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    level = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+
+class StudentSubjectSerializer(serializers.ModelSerializer):
+    teachers = TeacherSerializer(many=True)
+
+    class Meta:
+        model = StudentSubjects
+        fields = ('id', 'teachers')
+
+
+class StudentWithSubjectSerializer(serializers.ModelSerializer):
+    subjects = StudentSubjectSerializer(many=True)
+
+    class Meta:
+        model = Student
+        fields = ('first_name', 'last_name', 'id', 'subjects')
+
+
+

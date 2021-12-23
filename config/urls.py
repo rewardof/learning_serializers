@@ -1,4 +1,4 @@
-"""Learning_serializer_methods URL Configuration
+"""config URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.2/topics/http/urls/
@@ -21,7 +21,9 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('trade/', include('tradeapp.urls')),
-    path('edu/', include('student.urls'))
+    path('edu/', include('student.urls')),
+    path('orm/', include('orm.urls')),
+    path('book/', include('book.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

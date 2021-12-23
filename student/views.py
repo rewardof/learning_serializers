@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+
+from django.db.models import Count, Avg, Case, When, Subquery, OuterRef, Max, Min
 from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
@@ -5,8 +8,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from .serializers import StudentSerializer, FacultySerializer, MarkSerializer, SubjectSerializer, \
-    SecondStudentSerializer, HighScoreSerializer
-from .models import Student, Subject, StudentSubjects, Mark, Faculty, Teacher, HighScore
+    SecondStudentSerializer, HighScoreSerializer, StudentSmallSerializer, UserLevelSerializer, \
+    StudentWithSubjectSerializer
+from .models import Student, Subject, StudentSubjects, Mark, Faculty, Teacher, HighScore, StudentLevel
 from rest_framework import permissions
 
 
@@ -24,6 +28,81 @@ class SecondStudentApiView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+    def get(self, *args, **kwargs):
+        now = datetime.now().date() - timedelta(days=3)
+
+        number_students = Student.objects.aggregate(
+            number=Count('pk')
+        )
+        student_with_avg_mark = Student.objects.annotate(
+            avg_mark=Avg('student_marks__mark'))
+        student_with_avg_mark = StudentSmallSerializer(student_with_avg_mark, many=True).data
+
+        student_registerd_nowadays = Student.objects.filter(entry_date__gt=now, )
+
+        payload = {
+            'number_students': number_students,
+            'students_with_marks': student_with_avg_mark
+        }
+        return Response(payload, status=status.HTTP_200_OK)
+
+
+class StudentTeacherLevelsListView(generics.ListCreateAPIView):
+    serializer_class = UserLevelSerializer
+    queryset = StudentLevel
+
+    # def get(self, *args, **kwargs):
+    #     student_levels = StudentLevel.objects.update(
+    #         level=Case(
+    #             When(
+    #                 Subquery(Student.objects.all().annotate(avg_mark=Avg('student_marks__mark')))
+    #             )
+    #         )
+    #     )
+    #
+    #     Relation.objects.update(
+    #         rating=Subquery(
+    #             Relation.objects.filter(
+    #                 id=OuterRef('id')
+    #             ).annotate(
+    #                 total_rating=Sum('sign_relations__rating')
+    #             ).values('total_rating')[:1]
+    #         )
+    #     )
+
+
+class SubjectstudentList(generics.ListCreateAPIView):
+    serializer_class = SecondStudentSerializer
+    queryset = Subject.objects.all()
+
+    # def get(self, *args, **kwargs):
+    #     subject_students = Subject.objects.annotate(number_students=Count())
+
+
+class StudentSubjectsList(generics.ListCreateAPIView):
+    serializer_class = StudentWithSubjectSerializer
+    queryset = Student.objects.all()
+
+    def get(self, *args, **kwargs):
+        data = Student.objects.values('pk', 'first_name', 'last_name').annotate(
+            mark=Subquery(
+                Mark.objects.filter(student=OuterRef('pk')).values('mark')[:1]
+            )
+        )
+        test = Mark.objects.filter(student=1).values('mark')
+
+        min_mark_student = Student.objects.all().aggregate(
+            min_mark_student=Min('student_marks__mark'))
+
+
+
+        payload = {
+            'data': data,
+            'test': test,
+            'min_mark_student': min_mark_student
+        }
+        return Response(payload, status=status.HTTP_200_OK)
 
 
 class StudentDetailApiView(generics.RetrieveUpdateDestroyAPIView):
@@ -110,7 +189,6 @@ class MarkListApiView(generics.ListCreateAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    #
     # def get_paginated_response(self, data):
     #     pass
 
