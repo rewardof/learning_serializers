@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+# https://docs.djangoproject.com/en/3.2/ref/settings/#databasessqq
 
 DATABASES = {
     'default': {
@@ -143,3 +143,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 # The name of the URL field defaults to 'url'. You can override this globally, by using the URL_FIELD_NAME setting.
 URL_FIELD_NAME = 'link'
+
+# CELERY STUFF
+BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Tashkent'

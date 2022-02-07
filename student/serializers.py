@@ -170,7 +170,7 @@ class StudentSmallSerializer(serializers.Serializer):
 
 
 class TeacherSerializer(serializers.ModelSerializer):
-    subject = serializers.SlugRelatedField(queryset=Subject.objects.all(), slug_field='name')
+    # subject = serializers.SlugRelatedField(queryset=Subject.objects.all(), slug_field='name')
 
     class Meta:
         model = Teacher
@@ -197,6 +197,3 @@ class StudentWithSubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = ('first_name', 'last_name', 'id', 'subjects')
-
-
-

@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+from django.http import HttpRequest
+
 from django.db.models import Count, Avg, Case, When, Subquery, OuterRef, Max, Min
 from django.shortcuts import render
 from rest_framework import generics, status
@@ -9,7 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from .serializers import StudentSerializer, FacultySerializer, MarkSerializer, SubjectSerializer, \
     SecondStudentSerializer, HighScoreSerializer, StudentSmallSerializer, UserLevelSerializer, \
-    StudentWithSubjectSerializer
+    StudentWithSubjectSerializer, TeacherSerializer
 from .models import Student, Subject, StudentSubjects, Mark, Faculty, Teacher, HighScore, StudentLevel
 from rest_framework import permissions
 
@@ -17,6 +19,7 @@ from rest_framework import permissions
 class StudentViewSet(ModelViewSet):
     serializer_class = StudentSerializer
     queryset = Student.objects.all()
+
 
 
 class SecondStudentApiView(generics.ListCreateAPIView):
@@ -92,15 +95,17 @@ class StudentSubjectsList(generics.ListCreateAPIView):
         )
         test = Mark.objects.filter(student=1).values('mark')
 
+        teacher_students = Teacher.objects.annotate(students='students__student')
+        print(teacher_students)
+
         min_mark_student = Student.objects.all().aggregate(
             min_mark_student=Min('student_marks__mark'))
-
-
 
         payload = {
             'data': data,
             'test': test,
-            'min_mark_student': min_mark_student
+            'min_mark_student': min_mark_student,
+            'teacher_students': teacher_students
         }
         return Response(payload, status=status.HTTP_200_OK)
 

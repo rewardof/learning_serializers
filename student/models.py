@@ -109,7 +109,10 @@ class StudentSubjects(models.Model):
     ]
     term = models.IntegerField(choices=choices)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='subjects')
-    teachers = models.ManyToManyField(Teacher)
+    teacher = models.ForeignKey(Teacher, related_name='students', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.student.first_name} {self.student.last_name} subjects'
 
     class Meta:
         verbose_name_plural = 'Student Subjects'

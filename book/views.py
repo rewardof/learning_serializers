@@ -57,6 +57,7 @@ class MainBookView(generics.ListCreateAPIView):
     queryset = Book.objects.all()
 
     def get(self, *args, **kwargs):
+        data = self.request
         # total books count
         books_count = Book.objects.all().count()
 
@@ -72,12 +73,15 @@ class MainBookView(generics.ListCreateAPIView):
 
         book_authors_count = Book.objects.annotate(num_authors=Count('authors')).values('name', 'num_authors')[:3]
 
+        books_author_26 = Book.objects.filter(authors__in=(26, 11, 12)).count()
+
         payload = {
             'books_count': books_count,
             'books_name_length_gt_ten': books_name_length_gt_ten,
             'avg_price': avg_price,
             'total_price': total_price,
             'publisher': publisher,
-            'book_authors': book_authors_count
+            'book_authors': book_authors_count,
+            'books_author_26': books_author_26,
         }
         return Response(payload, status=status.HTTP_200_OK)
